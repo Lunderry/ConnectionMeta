@@ -1,30 +1,34 @@
+---@diagnostic disable: undefined-doc-name
 --!strict
 export type MetaConnection<T> = {
-	pack: { T },
+	pack: any,
 	Add: (self: MetaConnection<T>, connection: { T } | T) -> ...T | T,
 	Disconnect: (self: MetaConnection<T>) -> (),
 	Destroy: (self: MetaConnection<T>) -> (),
 	Unpack: (self: MetaConnection<T>) -> ...T,
 }
 
-local DataDisconnect = require(script.DataDisconnect)
+local MetaData = require(script.MetaData)
 
 local module = {}
 
-local function disconnect<T>(specificType: string, value: T): ()
-	if specificType then
-		DataDisconnect[specificType](value)
-	else
-		DataDisconnect[typeof(value)](value)
-	end
+local function dslection<T>(specificType: string): { meta: {}, funct: any }
+	return MetaData.Disconnect[specificType]
 end
 
----create MetaConnection, If you want to use a custom type, use specificType.
+local function disconnect<T>(specificType: string, value: T): ()
+	dslection(specificType).funct(value)
+end
+
+---create MetaConnection, specificType is for select type save
 ---@param specificType string?
 ---@return any
-function module.new<T>(specificType: string?): MetaConnection<T>
+function module.new<T>(specificType: string | "RBXScriptConnection" | "thread"): MetaConnection<T>
 	local tb = { pack = {} } :: MetaConnection<T>
+	tb.pack = setmetatable({}, dslection(specificType).meta)
 
+	---@param connection n {T | T}
+	---@return any
 	function tb:Add(connection: { T } | T): ...T | T
 		if specificType ~= nil and type(connection) == "table" then
 			for _, v in connection do
@@ -37,17 +41,16 @@ function module.new<T>(specificType: string?): MetaConnection<T>
 		end
 	end
 
+	---@param q number | T?
 	function tb:Disconnect(q: number | T?): ()
 		if q ~= nil then
-			local remove = 0
 			if type(q) == "number" then
 				disconnect(specificType, self.pack[q])
-				remove = q
+				table.remove(self.pack, q)
 			else
-				disconnect(specificType, table.find(self.pack, q))
-				remove = table.find(self.pack, q)
+				disconnect(specificType, self.pack[table.find(self.pack, q) :: number])
+				table.remove(self.pack, table.find(self.pack, q))
 			end
-			table.remove(self.pack, remove)
 			return
 		end
 		for _, v in self.pack do
@@ -64,6 +67,7 @@ function module.new<T>(specificType: string?): MetaConnection<T>
 		table.clear(tb)
 	end
 
+	---@return any
 	function tb:Unpack(): ...T
 		return table.unpack(tb.pack)
 	end
@@ -74,8 +78,10 @@ end
 ---Create a new type for Disconnect
 ---@param nameType string
 ---@param funct any
-function module.AddDisconnect(nameType: string, funct: any): ()
-	DataDisconnect[nameType] = funct
+function module.AddDisconnect(nameType: string, metatable: {} | nil, funct: any): ()
+	metatable = if metatable then metatable else MetaData.DEFAULTMETA
+
+	MetaData.Disconnect[nameType] = { meta = metatable, funct = funct }
 end
 
 return module
