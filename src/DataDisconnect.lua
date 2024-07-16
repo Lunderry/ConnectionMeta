@@ -1,3 +1,4 @@
+--!strict
 return {
 	RBXScriptConnection = function(v)
 		v:Disconnect()

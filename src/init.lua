@@ -11,11 +11,14 @@ local DataDisconnect = require(script.DataDisconnect)
 
 local module = {}
 
-function module.new<T>(): MetaConnection<T>
+---create MetaConnection, If you want to use a custom type, use specificType.
+---@param specificType string?
+---@return any
+function module.new<T>(specificType: string?): MetaConnection<T>
 	local tb = { pack = {} } :: MetaConnection<T>
 
 	function tb:Add(connection: { T } | T): ...T | T
-		if type(connection) == "table" then
+		if specificType ~= nil and type(connection) == "table" then
 			for _, v in connection do
 				self.pack[#self.pack + 1] = v
 			end
@@ -28,7 +31,11 @@ function module.new<T>(): MetaConnection<T>
 
 	function tb:Disconnect(): ()
 		for _, v in self.pack do
-			DataDisconnect[typeof(v)](v)
+			if specificType then
+				DataDisconnect[specificType](v)
+			else
+				DataDisconnect[typeof(v)](v)
+			end
 		end
 		table.clear(tb.pack)
 	end
@@ -48,8 +55,11 @@ function module.new<T>(): MetaConnection<T>
 	return tb
 end
 
-function module.AddDisconnect(type: string, funct: any): ()
-	DataDisconnect[type] = funct
+---Create a new type for Disconnect
+---@param nameType string
+---@param funct any
+function module.AddDisconnect(nameType: string, funct: any): ()
+	DataDisconnect[nameType] = funct
 end
 
 return module
