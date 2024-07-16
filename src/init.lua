@@ -11,6 +11,14 @@ local DataDisconnect = require(script.DataDisconnect)
 
 local module = {}
 
+local function disconnect<T>(specificType: string, value: T): ()
+	if specificType then
+		DataDisconnect[specificType](value)
+	else
+		DataDisconnect[typeof(value)](value)
+	end
+end
+
 ---create MetaConnection, If you want to use a custom type, use specificType.
 ---@param specificType string?
 ---@return any
@@ -29,13 +37,21 @@ function module.new<T>(specificType: string?): MetaConnection<T>
 		end
 	end
 
-	function tb:Disconnect(): ()
-		for _, v in self.pack do
-			if specificType then
-				DataDisconnect[specificType](v)
+	function tb:Disconnect(q: number | T?): ()
+		if q ~= nil then
+			local remove = 0
+			if type(q) == "number" then
+				disconnect(specificType, self.pack[q])
+				remove = q
 			else
-				DataDisconnect[typeof(v)](v)
+				disconnect(specificType, table.find(self.pack, q))
+				remove = table.find(self.pack, q)
 			end
+			table.remove(self.pack, remove)
+			return
+		end
+		for _, v in self.pack do
+			disconnect(specificType, v)
 		end
 		table.clear(tb.pack)
 	end
