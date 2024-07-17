@@ -1,7 +1,14 @@
 ---@diagnostic disable: undefined-doc-name
 --!strict
+export type MetaConnection<T> = {
+	pack: any,
+	Add: (self: MetaConnection<T>, ...T) -> ...T | T,
+	Disconnect: (self: MetaConnection<T>, q: number | T) -> (),
+	Destroy: (self: MetaConnection<T>) -> (),
+	Unpack: (self: MetaConnection<T>) -> ...T,
+}
+
 local MetaData = require(script.MetaData)
-local MetaTypes = require(script.MetaTypes)
 
 local module = {}
 
@@ -16,22 +23,17 @@ end
 ---create MetaConnection, specificType is for select type save
 ---@param specificType string?
 ---@return any
-function module.new<T>(specificType: string | "RBXScriptConnection" | "thread"): MetaTypes.MetaConnection<T>
-	local tb = { pack = {} } :: MetaTypes.MetaConnection<T>
+function module.new<T>(specificType: string | "RBXScriptConnection" | "thread"): MetaConnection<T>
+	local tb = { pack = {} } :: MetaConnection<T>
 	tb.pack = setmetatable({}, selection(specificType).meta)
 
-	---@param connection n {T | T}
 	---@return any
-	function tb:Add(connection: { T } | T): ...T | T
-		if specificType ~= nil and type(connection) == "table" then
-			for _, v in connection do
-				self.pack[#self.pack + 1] = v
-			end
-			return table.unpack(connection)
-		else
-			self.pack[#self.pack + 1] = connection
-			return connection
+	function tb:Add(...: T): ...T | T
+		local t = { ... }
+		for _, v in t do
+			self.pack[#self.pack + 1] = v
 		end
+		return table.unpack(t)
 	end
 
 	---@param q number | T?
