@@ -1,31 +1,24 @@
 ---@diagnostic disable: undefined-doc-name
 --!strict
-export type MetaConnection<T> = {
-	pack: any,
-	Add: (self: MetaConnection<T>, connection: { T } | T) -> ...T | T,
-	Disconnect: (self: MetaConnection<T>) -> (),
-	Destroy: (self: MetaConnection<T>) -> (),
-	Unpack: (self: MetaConnection<T>) -> ...T,
-}
-
 local MetaData = require(script.MetaData)
+local MetaTypes = require(script.MetaTypes)
 
 local module = {}
 
-local function dslection<T>(specificType: string): { meta: {}, funct: any }
+local function selection<T>(specificType: string): { meta: {}, funct: any }
 	return MetaData.Disconnect[specificType]
 end
 
 local function disconnect<T>(specificType: string, value: T): ()
-	dslection(specificType).funct(value)
+	selection(specificType).funct(value)
 end
 
 ---create MetaConnection, specificType is for select type save
 ---@param specificType string?
 ---@return any
-function module.new<T>(specificType: string | "RBXScriptConnection" | "thread"): MetaConnection<T>
-	local tb = { pack = {} } :: MetaConnection<T>
-	tb.pack = setmetatable({}, dslection(specificType).meta)
+function module.new<T>(specificType: string | "RBXScriptConnection" | "thread"): MetaTypes.MetaConnection<T>
+	local tb = { pack = {} } :: MetaTypes.MetaConnection<T>
+	tb.pack = setmetatable({}, selection(specificType).meta)
 
 	---@param connection n {T | T}
 	---@return any
