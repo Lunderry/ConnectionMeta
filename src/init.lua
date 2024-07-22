@@ -79,8 +79,6 @@ do
 		bindable = Instance.new("BindableEvent", ReplicatedStorage)
 		bindable.Name = "_AddDisconnect"
 	end
-
-	bindable.Event:Connect(module.AddDisconnect)
 end
 
 ---Create a new type for Disconnect
@@ -95,5 +93,9 @@ function module.AddDisconnect(nameType: string, metatable: {} | nil, funct: any)
 	MetaData.Disconnect[nameType] = { meta = metatable, funct = funct }
 	bindable:Fire(nameType, metatable, funct)
 end
+
+bindable.Event:Connect(function(n, m, f)
+	module.AddDisconnect(n, m, f)
+end)
 
 return module
