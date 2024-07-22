@@ -87,6 +87,9 @@ end
 ---@param nameType string
 ---@param funct any
 function module.AddDisconnect(nameType: string, metatable: {} | nil, funct: any): ()
+	if MetaData.Disconnect[nameType] then
+		return
+	end
 	metatable = if metatable then metatable else MetaData.DEFAULTMETA
 
 	MetaData.Disconnect[nameType] = { meta = metatable, funct = funct }
