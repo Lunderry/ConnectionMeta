@@ -1,5 +1,6 @@
 ---@diagnostic disable: undefined-doc-name
 --!strict
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 export type MetaConnection<T> = {
 	pack: any,
 	Add: (self: MetaConnection<T>, ...T) -> ...T | T,
@@ -70,6 +71,18 @@ function module.new<T>(specificType: string | "RBXScriptConnection" | "thread"):
 	return tb
 end
 
+local bindable: BindableEvent
+do
+	if ReplicatedStorage:FindFirstChild("_AddDisconnect") then
+		bindable = ReplicatedStorage["_AddDisconnect"]
+	else
+		bindable = Instance.new("BindableEvent", ReplicatedStorage)
+		bindable.Name = "_AddDisconnect"
+	end
+
+	bindable.Event:Connect(module.AddDisconnect)
+end
+
 ---Create a new type for Disconnect
 ---@param nameType string
 ---@param funct any
@@ -77,6 +90,7 @@ function module.AddDisconnect(nameType: string, metatable: {} | nil, funct: any)
 	metatable = if metatable then metatable else MetaData.DEFAULTMETA
 
 	MetaData.Disconnect[nameType] = { meta = metatable, funct = funct }
+	bindable:Fire(nameType, metatable, funct)
 end
 
 return module
