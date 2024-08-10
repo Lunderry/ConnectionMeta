@@ -1,20 +1,15 @@
 ---@diagnostic disable: undefined-doc-name
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-export type MetaConnection<T> = {
-	pack: any,
-	Add: (self: MetaConnection<T>, ...T) -> ...T | T,
-	Disconnect: (self: MetaConnection<T>, q: number | T?) -> (),
-	Destroy: (self: MetaConnection<T>) -> (),
-	Unpack: (self: MetaConnection<T>) -> ...T,
-}
 
+local ManagerMeta = require(script.ManagerMeta)
 local MetaData = require(script.MetaData)
+local Types = require(script.Types)
 
 local module = {}
 
 local function selection<T>(specificType: string): { meta: {}, funct: any }
-	return MetaData.Disconnect[specificType]
+	return ManagerMeta.Wait(MetaData.Disconnect, specificType)
 end
 
 local function disconnect<T>(specificType: string, value: T): ()
@@ -24,8 +19,8 @@ end
 ---create MetaConnection, specificType is for select type save
 ---@param specificType string?
 ---@return any
-function module.new<T>(specificType: string | "RBXScriptConnection" | "thread"): MetaConnection<T>
-	local tb = { pack = {} } :: MetaConnection<T>
+function module.new<T>(specificType: string | "RBXScriptConnection" | "thread"): Types.MetaConnection<T>
+	local tb = { pack = {} } :: Types.MetaConnection<T>
 	tb.pack = setmetatable({}, selection(specificType).meta)
 
 	---@return any
