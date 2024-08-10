@@ -5,7 +5,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ManagerMeta = require(script.ManagerMeta)
 local MetaData = require(script.MetaData)
 local Types = require(script.Types)
-
+--
+export type MetaConnection<T> = Types.MetaConnection<T>
+--
 local module = {}
 
 local function selection<T>(specificType: string): Types.ContentDisconnect
