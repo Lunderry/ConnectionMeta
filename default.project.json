@@ -1,9 +1,6 @@
 {
   "name": "ConnectionMeta",
   "tree": {
-    "$className": "DataModel",
-    "Workspace": {
-      "$path": "src"
-    }
+    "$path": "src"
   }
 }

@@ -5,4 +5,13 @@ export type MetaConnection<T> = {
 	Destroy: (self: MetaConnection<T>) -> (),
 	Unpack: (self: MetaConnection<T>) -> ...T,
 }
+
+export type MetaData = {
+	Disconnect: {
+		[string]: {
+			meta: {},
+			funct: any,
+		},
+	},
+}
 return nil
