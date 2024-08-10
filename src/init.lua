@@ -8,8 +8,8 @@ local Types = require(script.Types)
 
 local module = {}
 
-local function selection<T>(specificType: string): { meta: {}, funct: any }
-	return ManagerMeta.Wait(MetaData.Disconnect, specificType)
+local function selection<T>(specificType: string): Types.ContentDisconnect
+	return ManagerMeta.Wait(MetaData.Disconnect, specificType) :: Types.ContentDisconnect
 end
 
 local function disconnect<T>(specificType: string, value: T): ()
@@ -85,7 +85,7 @@ function module.AddDisconnect(nameType: string, metatable: {} | nil, funct: any)
 	end
 	metatable = if metatable then metatable else MetaData.DEFAULTMETA
 
-	MetaData.Disconnect[nameType] = { meta = metatable, funct = funct }
+	MetaData.Disconnect[nameType] = { meta = metatable, funct = funct } :: Types.ContentDisconnect
 	bindable:Fire(nameType, metatable, funct)
 end
 

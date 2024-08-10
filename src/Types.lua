@@ -6,12 +6,12 @@ export type MetaConnection<T> = {
 	Unpack: (self: MetaConnection<T>) -> ...T,
 }
 
-export type MetaData = {
-	Disconnect: {
-		[string]: {
-			meta: {},
-			funct: any,
-		},
-	},
+export type ContentDisconnect = {
+	meta: {},
+	funct: (value: any) -> (),
+}
+
+export type Disconnect = {
+	[string]: ContentDisconnect,
 }
 return nil

@@ -9,7 +9,7 @@ local WAITING = 1
 ---@param data table
 ---@param index string
 ---@return any
-function module.Wait(data: { [string]: any }, index: string): ()
+function module.Wait(data: { [any]: any }, index: string): { [any]: any }
 	local count = 0
 
 	while true do

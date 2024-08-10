@@ -1,4 +1,6 @@
 --!strict
+local Types = require(script.Parent.Types)
+--
 local module = {}
 
 module.DEFAULTMETA = {
@@ -21,6 +23,6 @@ module.Disconnect = {
 			task.cancel(v)
 		end,
 	},
-}
+}:: Types.Disconnect
 
 return module
