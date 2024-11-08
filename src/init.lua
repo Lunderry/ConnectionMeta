@@ -10,6 +10,28 @@ export type MetaConnection<T> = Types.MetaConnection<T>
 --
 local module = {}
 
+local mainConnection: ObjectValue
+do
+	local function find(instanceName: string, name: string): any
+		local findDisconnect = ReplicatedStorage:FindFirstChild(name)
+		local r
+		if findDisconnect then
+			r = findDisconnect
+		else
+			r = Instance.new(instanceName, ReplicatedStorage)
+			r.Name = name
+		end
+		return r
+	end
+	mainConnection = find("ObjectValue", "_MainConnection")
+end
+
+if mainConnection.Value == nil then
+	mainConnection.Value = script
+elseif mainConnection.Value.ClassName == "ModuleScript" then
+	return require(mainConnection.Value) :: any
+end
+
 local function selection<T>(specificType: string): Types.ContentDisconnect
 	return ManagerMeta.Wait(MetaData.Disconnect, specificType) :: Types.ContentDisconnect
 end
@@ -68,28 +90,6 @@ function module.new<T>(specificType: string | "RBXScriptConnection" | "thread"):
 	return tb
 end
 
-local folder: Folder & { ObjectValue }
-local bindableFolder: { [string]: BindableFunction }
-do
-	local function find(instanceName: string, name: string): any
-		local findDisconnect = ReplicatedStorage:FindFirstChild(name)
-		local r
-		if findDisconnect then
-			r = findDisconnect
-		else
-			r = Instance.new(instanceName, ReplicatedStorage)
-			r.Name = name
-		end
-		return r
-	end
-
-	folder = find("Folder", "_Connections")
-	bindableFolder = find("Folder", "_GetDisconnect")
-end
-
-local bindableLocal = Instance.new("BindableFunction", bindableFolder)
-bindableLocal.Name = script:GetFullName()
-
 ---Create a new type for Disconnect
 ---@param nameType string
 ---@param funct any () -> ()
@@ -100,47 +100,6 @@ function module.AddDisconnect(nameType: string, metatable: {} | nil, funct: () -
 	metatable = if metatable then metatable else MetaData.DEFAULTMETA
 
 	MetaData.Disconnect[nameType] = { meta = metatable, funct = funct } :: Types.ContentDisconnect
-
-	--save connection
-	local objectValue = Instance.new("ObjectValue", folder)
-	objectValue.Name = nameType
-	objectValue.Value = script
-end
-
----@param nameType string
----@return any
-bindableLocal.OnInvoke = function(nameType: string): Types.ContentDisconnect
-	return MetaData.Disconnect[nameType]
-end
-
----@param child Instance
-local function scanFolder(child: Instance): ()
-	if MetaData.Disconnect[child.Name] then
-		return
-	end
-
-	if not child:IsA("ObjectValue") then
-		return
-	end
-
-	local v = child.Value
-
-	if v == nil or not v:IsA("Instance") then
-		return
-	end
-
-	local getBindable = bindableFolder[v:GetFullName()]
-
-	local g: Types.ContentDisconnect = getBindable:Invoke(v.Name)
-
-	module.AddDisconnect(child.Name, g.meta, g.funct)
-end
-
-folder.ChildAdded:Connect(scanFolder)
-
---scan folder more
-for _, v in pairs(folder:GetChildren()) do
-	scanFolder(v)
 end
 
 return module
