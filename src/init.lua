@@ -28,7 +28,7 @@ end
 
 if mainConnection.Value == nil then
 	mainConnection.Value = script
-elseif mainConnection.Value.ClassName == "ModuleScript" then
+elseif mainConnection.Value.ClassName == "ModuleScript" and mainConnection.Value ~= script then
 	return require(mainConnection.Value) :: any
 end
 
